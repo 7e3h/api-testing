@@ -1,0 +1,23 @@
+{
+  "name": "api-testing",
+  "version": "1.0.0",
+  "description": "Automated REST API testing suite covering Status Codes, Response Body Schema, Headers, Required Fields, Boundary Scenarios, and Authentication.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 tests/get-users/*.test.js tests/create-user/*.test.js tests/update-user/*.test.js tests/delete-user/*.test.js",
+    "test:get": "node --test tests/get-users/*.test.js",
+    "test:create": "node --test tests/create-user/*.test.js",
+    "test:update": "node --test tests/update-user/*.test.js",
+    "test:delete": "node --test tests/delete-user/*.test.js"
+  },
+  "keywords": [
+    "api-testing",
+    "postman",
+    "automated-tests",
+    "rest-api",
+    "node-test",
+    "qa-engineer"
+  ],
+  "author": "QA Engineer",
+  "license": "MIT"
+}

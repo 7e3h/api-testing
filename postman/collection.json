@@ -1,0 +1,368 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-4789-9abc-1234567890ab",
+    "name": "User Management & Auth API Testing Suite",
+    "description": "Comprehensive automated REST API test collection covering CRUD operations, JSON schema verification, headers, negative/boundary cases, and token-based authentication against the public DummyJSON testing API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://dummyjson.com",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Get Users",
+      "item": [
+        {
+          "name": "GET - List Paginated Users",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Content-Type is JSON\", function () {",
+                  "    pm.response.to.have.header(\"content-type\");",
+                  "    pm.expect(pm.response.headers.get(\"content-type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "pm.test(\"Verify pagination metadata and users array\", function () {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property(\"total\");",
+                  "    pm.expect(jsonData).to.have.property(\"skip\");",
+                  "    pm.expect(jsonData).to.have.property(\"limit\");",
+                  "    pm.expect(jsonData.users).to.be.an(\"array\").that.is.not.empty;",
+                  "});",
+                  "",
+                  "pm.test(\"User object contains required fields\", function () {",
+                  "    const firstUser = pm.response.json().users[0];",
+                  "    pm.expect(firstUser).to.have.property(\"id\").that.is.a(\"number\");",
+                  "    pm.expect(firstUser).to.have.property(\"email\").that.is.a(\"string\");",
+                  "    pm.expect(firstUser).to.have.property(\"firstName\").that.is.a(\"string\");",
+                  "    pm.expect(firstUser).to.have.property(\"lastName\").that.is.a(\"string\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users?limit=10&skip=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "skip",
+                  "value": "0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET - Single User Details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Target user ID matches requested parameter\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.id).to.eql(1);",
+                  "    pm.expect(json.firstName).to.eql(\"Emily\");",
+                  "    pm.expect(json.email).to.include(\"@\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "1"]
+            }
+          }
+        },
+        {
+          "name": "GET - Non-existent User (Negative 404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404 Not Found\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains descriptive error message\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"message\");",
+                  "    pm.expect(json.message).to.include(\"not found\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "9999"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Create User",
+      "item": [
+        {
+          "name": "POST - Create Valid User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201 Created\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response body echoes submitted user details\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.firstName).to.eql(\"Sarah\");",
+                  "    pm.expect(json.lastName).to.eql(\"Connor\");",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains auto-generated numeric id\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"id\");",
+                  "    pm.expect(json.id).to.be.a(\"number\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Sarah\",\n  \"lastName\": \"Connor\",\n  \"age\": 29\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/add",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "add"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Update User",
+      "item": [
+        {
+          "name": "PUT - Update User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response updates lastName correctly\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.lastName).to.eql(\"Johnson-Lead\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lastName\": \"Johnson-Lead\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Delete User",
+      "item": [
+        {
+          "name": "DELETE - Delete Existing User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response confirms item is deleted\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json.isDeleted).to.be.true;",
+                  "    pm.expect(json).to.have.property(\"deletedOn\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Authentication & Negative Tests",
+      "item": [
+        {
+          "name": "POST - User Login (Auth Token Success)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200 OK\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains authorization accessToken\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"accessToken\");",
+                  "    pm.expect(json.accessToken).to.be.a(\"string\").that.is.not.empty;",
+                  "    pm.collectionVariables.set(\"authToken\", json.accessToken);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"emilys\",\n  \"password\": \"emilyspass\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "POST - Login Missing Password (Negative 400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400 Bad Request\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Response contains descriptive error message\", function () {",
+                  "    const json = pm.response.json();",
+                  "    pm.expect(json).to.have.property(\"message\");",
+                  "    pm.expect(json.message).to.eql(\"Username and password required\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"emilys\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
